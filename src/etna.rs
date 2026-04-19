@@ -131,26 +131,38 @@ pub fn property_count_handles_zero_sized_output(repeats: u8) -> PropertyResult {
     }
     input.push_str("def");
 
-    let parser = map(tag::<_, _, crate::error::Error<_>>("abc"), |_| ());
-    let mut counted = count(parser, n);
+    let parsed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let parser = map(tag::<_, _, crate::error::Error<_>>("abc"), |_| ());
+        let mut counted = count(parser, n);
+        counted.parse(input.as_str()).map(|(rem, out)| (rem.to_string(), out.len()))
+    }));
 
-    match counted.parse(input.as_str()) {
-        Ok((rem, out)) => {
+    match parsed {
+        Ok(Ok((rem, out_len))) => {
             if rem != "def" {
                 return PropertyResult::Fail(format!(
                     "count returned rem={:?}, expected \"def\"",
                     rem
                 ));
             }
-            if out.len() != n {
+            if out_len != n {
                 return PropertyResult::Fail(format!(
                     "count returned {} elements, expected {}",
-                    out.len(),
-                    n
+                    out_len, n
                 ));
             }
             PropertyResult::Pass
         }
-        Err(e) => PropertyResult::Fail(format!("count errored: {:?}", e)),
+        Ok(Err(e)) => PropertyResult::Fail(format!("count errored: {:?}", e)),
+        Err(payload) => {
+            let msg = if let Some(s) = payload.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = payload.downcast_ref::<&str>() {
+                (*s).to_string()
+            } else {
+                "count panicked with non-string payload".to_string()
+            };
+            PropertyResult::Fail(format!("count panicked: {}", msg))
+        }
     }
 }
