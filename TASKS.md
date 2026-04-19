@@ -2,7 +2,7 @@
 
 Total tasks: 12
 
-ETNA tasks are **mutation/property/witness triplets**. Each row below is one runnable task. The `<PropertyKey>` placeholder in the command column uses the PascalCase key recognised by `src/bin/etna.rs`; passing `All` runs every property for the named framework in a single invocation.
+ETNA tasks are **mutation/property/witness triplets**. Each row below is one runnable task. The `<PropertyKey>` token in the command column uses the PascalCase key recognised by `src/bin/etna.rs`; passing `All` runs every property for the named framework in a single invocation.
 
 ## Property keys
 

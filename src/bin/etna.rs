@@ -19,7 +19,7 @@ use nom::etna::{
     property_multispace0_consumes_all_whitespace, PropertyResult,
 };
 use proptest::prelude::*;
-use proptest::test_runner::{Config as ProptestConfig, TestCaseError, TestRunner};
+use proptest::test_runner::{Config as ProptestConfig, TestCaseError};
 use quickcheck::{QuickCheck, ResultStatus, TestResult};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -101,7 +101,7 @@ fn run_proptest_property(property: &str) -> Outcome {
     }
     let counter = Arc::new(AtomicU64::new(0));
     let t0 = Instant::now();
-    let mut runner = TestRunner::new(ProptestConfig::default());
+    let mut runner = proptest::test_runner::TestRunner::new(ProptestConfig::default());
     let result: Result<(), String> = match property {
         "Multispace0ConsumesAllWhitespace" => {
             let c = counter.clone();
