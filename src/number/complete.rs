@@ -1283,11 +1283,11 @@ where
         .map_err(|_| crate::Err::Error(E::from_error_kind(i, ErrorKind::Float)))
     },
     |i: T| {
-      crate::bytes::complete::tag_no_case::<_, _, E>("infinity")(i.clone())
+      crate::bytes::complete::tag_no_case::<_, _, E>("inf")(i.clone())
         .map_err(|_| crate::Err::Error(E::from_error_kind(i, ErrorKind::Float)))
     },
     |i: T| {
-      crate::bytes::complete::tag_no_case::<_, _, E>("inf")(i.clone())
+      crate::bytes::complete::tag_no_case::<_, _, E>("infinity")(i.clone())
         .map_err(|_| crate::Err::Error(E::from_error_kind(i, ErrorKind::Float)))
     },
   ))
