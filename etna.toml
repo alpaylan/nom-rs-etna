@@ -1,0 +1,48 @@
+# ETNA workload index for nom.
+#
+# One [[variant]] per injected mutation. Source of truth for variant->property
+# mapping. Every other fact is derivable from the source tree:
+#   - ls patches/*.patch                          (patch-based variants)
+#   - grep -rn "pub fn property_" src/etna.rs     (property functions)
+#   - grep -rn "fn witness_.*_case_" tests/       (witness tests)
+#
+# Base commit for this workload is HEAD of master on this tree. Every
+# etna/<variant> branch is master + exactly one patch applied on top.
+
+[[variant]]
+name = "multispace0_consumes_all_whitespace_51c3c4e_1"
+property = "multispace0_consumes_all_whitespace"
+injection = "patch"
+patch = "patches/multispace0_consumes_all_whitespace_51c3c4e_1.patch"
+source_commit = "51c3c4e44fa78a8a09b413419372b97b2cc2a787"
+witnesses = [
+    "witness_multispace0_consumes_all_whitespace_case_newline_only",
+    "witness_multispace0_consumes_all_whitespace_case_mixed_ws",
+]
+frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+files = ["src/traits.rs"]
+
+[[variant]]
+name = "float_parses_infinity_fully_63def4e_1"
+property = "float_parses_infinity_fully"
+injection = "patch"
+patch = "patches/float_parses_infinity_fully_63def4e_1.patch"
+source_commit = "63def4e16b1273f702f1a77f19a0b61d2bcb1e18"
+witnesses = [
+    "witness_float_parses_infinity_fully_case_lowercase",
+    "witness_float_parses_infinity_fully_case_mixed_case",
+]
+frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+files = ["src/number/complete.rs"]
+
+[[variant]]
+name = "count_handles_zero_sized_output_931bcf0_1"
+property = "count_handles_zero_sized_output"
+injection = "patch"
+patch = "patches/count_handles_zero_sized_output_931bcf0_1.patch"
+source_commit = "931bcf0109decd100746297a0d0fa243f8c39e23"
+witnesses = [
+    "witness_count_handles_zero_sized_output_case_three_abc",
+]
+frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+files = ["src/multi/mod.rs"]

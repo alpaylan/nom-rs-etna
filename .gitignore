@@ -8,3 +8,5 @@ src/generator.rs
 .DS_Store
 private-docs/
 .idea/
+.hegel/
+checkpoints/
