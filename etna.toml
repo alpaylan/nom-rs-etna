@@ -1,48 +1,96 @@
-# ETNA workload index for nom.
-#
-# One [[variant]] per injected mutation. Source of truth for variant->property
-# mapping. Every other fact is derivable from the source tree:
-#   - ls patches/*.patch                          (patch-based variants)
-#   - grep -rn "pub fn property_" src/etna.rs     (property functions)
-#   - grep -rn "fn witness_.*_case_" tests/       (witness tests)
-#
-# Base commit for this workload is HEAD of master on this tree. Every
-# etna/<variant> branch is master + exactly one patch applied on top.
+name = "nom-rs"
+language = "rust"
+crate = "nom"
+base_commit = "dc874f4264e85a3ddb39d4699a6dac6ee70b22e8"
 
-[[variant]]
-name = "multispace0_consumes_all_whitespace_51c3c4e_1"
-property = "multispace0_consumes_all_whitespace"
-injection = "patch"
-patch = "patches/multispace0_consumes_all_whitespace_51c3c4e_1.patch"
-source_commit = "51c3c4e44fa78a8a09b413419372b97b2cc2a787"
-witnesses = [
-    "witness_multispace0_consumes_all_whitespace_case_newline_only",
-    "witness_multispace0_consumes_all_whitespace_case_mixed_ws",
-]
-frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+[[tasks]]
+mutations = ["multispace0_consumes_all_whitespace_51c3c4e_1"]
+
+[tasks.source]
+repo = "https://github.com/rust-bakery/nom"
+commits = ["51c3c4e44fa78a8a09b413419372b97b2cc2a787"]
+commit_subjects = ["Fix for issue 1808 (#1811)"]
+summary = "`multispace0` (via `split_at_position_complete`) split at offset 0 when every byte matched the predicate, so on an all-whitespace input the parser returned consumed=\"\" / remainder=whole instead of consuming everything; the fix delegates the exhaustive case to `take_split(self.input_len())`."
+
+[tasks.injection]
+kind = "patch"
 files = ["src/traits.rs"]
+locations = [{ file = "src/traits.rs" }]
+patch = "patches/multispace0_consumes_all_whitespace_51c3c4e_1.patch"
 
-[[variant]]
-name = "float_parses_infinity_fully_63def4e_1"
-property = "float_parses_infinity_fully"
-injection = "patch"
-patch = "patches/float_parses_infinity_fully_63def4e_1.patch"
-source_commit = "63def4e16b1273f702f1a77f19a0b61d2bcb1e18"
+[tasks.bug]
+short_name = "multispace0_consumes_all_whitespace"
+invariant = """
+`recognize(multispace0)` on an all-whitespace `&str` input must return `(rem="", consumed=whole)`.
+"""
+how_triggered = """
+The `None` branch of `split_at_position_complete` for `&str` returns `self.split_at(0)` (yielding consumed="", remainder=whole at offset 0) instead of `self.take_split(self.input_len())` (yielding consumed=whole, remainder="" at offset len).
+"""
+
+[[tasks.tasks]]
+property = "Multispace0ConsumesAllWhitespace"
 witnesses = [
-    "witness_float_parses_infinity_fully_case_lowercase",
-    "witness_float_parses_infinity_fully_case_mixed_case",
+  { test_fn = "witness_multispace0_consumes_all_whitespace_case_newline_only" },
+  { test_fn = "witness_multispace0_consumes_all_whitespace_case_mixed_ws" },
 ]
-frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+
+[[tasks]]
+mutations = ["float_parses_infinity_fully_63def4e_1"]
+
+[tasks.source]
+repo = "https://github.com/rust-bakery/nom"
+commits = ["63def4e16b1273f702f1a77f19a0b61d2bcb1e18"]
+commit_subjects = ["""
+fix: parse "infinity" literal fully in `float` (#1673)
+"""]
+summary = "In `recognize_float_or_exceptions` the `tag_no_case(\"inf\")` branch appeared before `tag_no_case(\"infinity\")` inside the `alt`, so parsing \"infinity\" matched the shorter prefix and left \"inity\" unconsumed; reordering the branches lets the longer literal win."
+
+[tasks.injection]
+kind = "patch"
 files = ["src/number/complete.rs"]
+locations = [{ file = "src/number/complete.rs" }]
+patch = "patches/float_parses_infinity_fully_63def4e_1.patch"
 
-[[variant]]
-name = "count_handles_zero_sized_output_931bcf0_1"
-property = "count_handles_zero_sized_output"
-injection = "patch"
-patch = "patches/count_handles_zero_sized_output_931bcf0_1.patch"
-source_commit = "931bcf0109decd100746297a0d0fa243f8c39e23"
+[tasks.bug]
+short_name = "float_parses_infinity_fully"
+invariant = """
+`float("infinity")` must return `("", +inf)` — no unparsed remainder.
+"""
+how_triggered = """
+Inside `recognize_float_or_exceptions` the `alt` branches test `tag_no_case("inf")` before `tag_no_case("infinity")`, so the short tag matches first and leaves `"inity"` unconsumed.
+"""
+
+[[tasks.tasks]]
+property = "FloatParsesInfinityFully"
 witnesses = [
-    "witness_count_handles_zero_sized_output_case_three_abc",
+  { test_fn = "witness_float_parses_infinity_fully_case_lowercase" },
+  { test_fn = "witness_float_parses_infinity_fully_case_mixed_case" },
 ]
-frameworks = ["proptest", "quickcheck", "crabcheck", "hegel"]
+
+[[tasks]]
+mutations = ["count_handles_zero_sized_output_931bcf0_1"]
+
+[tasks.source]
+repo = "https://github.com/rust-bakery/nom"
+commits = ["931bcf0109decd100746297a0d0fa243f8c39e23"]
+commit_subjects = ["avoid panic when counting zero-sized outputs in count() (#1618)"]
+summary = "`count`'s capacity heuristic divided a byte budget by `size_of::<O>()` without guarding the divisor, so a parser whose output is a zero-sized type hit a divide-by-zero panic; the fix reinstates `.max(1)` on the divisor."
+
+[tasks.injection]
+kind = "patch"
 files = ["src/multi/mod.rs"]
+locations = [{ file = "src/multi/mod.rs" }]
+patch = "patches/count_handles_zero_sized_output_931bcf0_1.patch"
+
+[tasks.bug]
+short_name = "count_handles_zero_sized_output"
+invariant = "`count(parser, n)` with a parser whose output is a zero-sized type must not panic during capacity allocation."
+how_triggered = """
+The initial capacity divisor `MAX_INITIAL_CAPACITY_BYTES / size_of::<O>()` drops the `.max(1)` guard, so when `O = ()` (size 0) the division panics with "attempt to divide by zero".
+"""
+
+[[tasks.tasks]]
+property = "CountHandlesZeroSizedOutput"
+witnesses = [
+  { test_fn = "witness_count_handles_zero_sized_output_case_three_abc" },
+]

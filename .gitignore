@@ -9,4 +9,8 @@ src/generator.rs
 private-docs/
 .idea/
 .hegel/
+.marauders/
+.migration-cache/
+etna.log
+progress.jsonl
 checkpoints/
