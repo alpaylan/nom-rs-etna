@@ -1,5 +1,6 @@
-name = "nom-rs"
+name = "nom"
 language = "rust"
+strategies = ["proptest", "quickcheck", "crabcheck", "hegel"]
 crate = "nom"
 base_commit = "dc874f4264e85a3ddb39d4699a6dac6ee70b22e8"
 
